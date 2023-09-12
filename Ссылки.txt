@@ -1,0 +1,7 @@
+https://fixmypc.ru/post/zagruzka-izobrazhenii-i-drugikh-failov-v-django-3-cherez-formy-i-modeli/ - про хранение файлов в Django
+
+https://habr.com/ru/companies/vk/articles/328352/ - хабр про частые ошибки программирования на django
+
+https://docs.djangoproject.com/en/1.10/ref/templates/builtins/ - про шаблоны django (tocken и тд)
+
+https://docs.djangoproject.com/en/4.2/ - документация Django

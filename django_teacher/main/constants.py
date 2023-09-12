@@ -1,0 +1,2 @@
+WIDTH = 330
+HEIGHT = 220
