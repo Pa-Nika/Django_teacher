@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
                 ),
                 ("title", models.CharField(max_length=80, verbose_name="Название")),
                 ("video_file", models.FileField(upload_to="videos/")),
-                ("uploaded_at", models.DateTimeField(auto_now_add=True)),
+                ("date", models.DateField(verbose_name="Дата")),
             ],
         ),
     ]

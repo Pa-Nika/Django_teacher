@@ -5,7 +5,6 @@
 {% endblock %}
 
 {% block content %}
-
   <div class="container">
     <div class="row justify-content-center">
       <div class="col-md-6 text-center">
@@ -13,19 +12,17 @@
         <div class="p-4 mb-5 text-start">
           <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
-            <div class="mb-3">
-              {{ form.title.label_tag }}
-              {{ form.title }}
-            </div>
-            <div class="mb-3">
-              {{ form.video_file.label_tag }}
-              {{ form.video_file }}
-            </div>
+            {{ form.title }}<br>
+            {{ form.video_file }}<br>
+            {{ form.uploaded_at }}<br>
+            <span>{{ error }}</span><br>
             <button type="submit" class="btn btn-primary">Загрузить</button>
           </form>
+          <div id="error-message"></div>
         </div>
       </div>
     </div>
   </div>
+  <script src="/static/main/js/upload_video.js"></script>
 
 {% endblock %}
