@@ -1,0 +1,31 @@
+{% extends 'main/base.html' %}
+
+{% block title %}
+  Онлайн запись видео
+{% endblock %}
+
+{% block content %}
+
+  <div class="container">
+    <div class="row justify-content-center mt-5">
+      <div class="col-md-6 text-center">
+        <h1 class="display-4 mt-5 fw-normal text-body-emphasis">Онлайн</h1>
+        <div class="p-4 mb-5 text-start">
+          <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="mb-3">
+              {{ form.title.label_tag }}
+              {{ form.title }}
+            </div>
+            <div class="mb-3">
+              {{ form.video_file.label_tag }}
+              {{ form.video_file }}
+            </div>
+            <button type="submit" class="btn btn-primary">Онлайн</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}
