@@ -1,13 +1,12 @@
 import dlib
 import os
 from django.shortcuts import render, redirect
-# from .position import position_analyzer
 from .forms import VideoForm
 from .models import Video
+from .position import position_analyzer
 
-
-# detector = dlib.get_frontal_face_detector()
-# predictor = dlib.shape_predictor("main/utils/shape_predictor_68_face_landmarks.dat")
+detector = dlib.get_frontal_face_detector()
+predictor = dlib.shape_predictor("video/static/video/face_detection_data/shape_predictor_68_face_landmarks.dat")
 
 
 def history(request):
@@ -26,11 +25,10 @@ def upload_video(request):
     if request.method == 'POST':
         form = VideoForm(request.POST, request.FILES)
         if form.is_valid():
-            tmp_video = form.save()
-            # my_video = form.save()
-            # position = position_analyzer.PositionAnalysis(my_video.video_file.path, detector, predictor)
-            # position.analyse()
-            os.remove(tmp_video.video_file.path)
+            my_video = form.save()
+            position = position_analyzer.PositionAnalyzer(my_video.video_file.path, detector, predictor)
+            position.analyse()
+            # os.remove(my_video.video_file.path)
             return redirect('upload_video')
         else:
             error = 'Введите корректные данные'
