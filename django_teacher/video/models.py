@@ -6,6 +6,7 @@ class Video(models.Model):
     video_file = models.FileField('Файл', upload_to='media/videos')
     date = models.DateField('Дата')
     user = models.CharField('Пользователь', max_length=30)
+    # Добавить файл для графика?
 
     def __str__(self):
         return self.title

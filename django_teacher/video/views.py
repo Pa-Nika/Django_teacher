@@ -4,6 +4,7 @@ from django.shortcuts import render, redirect
 from .forms import VideoForm
 from .models import Video
 from .position import position_analyzer
+from .position import graph_maker
 
 detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor("video/static/video/face_detection_data/shape_predictor_68_face_landmarks.dat")
@@ -22,12 +23,17 @@ def history(request):
 def upload_video(request):
     error = ''
     form = VideoForm()
+
     if request.method == 'POST':
         form = VideoForm(request.POST, request.FILES)
         if form.is_valid():
             my_video = form.save()
             position = position_analyzer.PositionAnalyzer(my_video.video_file.path, detector, predictor)
-            position.analyse()
+            dataframe = position.analyse()
+
+            graph = graph_maker.Graph(dataframe)
+            graph.plot_and_save_graph()
+
             # os.remove(my_video.video_file.path)
             return redirect('upload_video')
         else:
