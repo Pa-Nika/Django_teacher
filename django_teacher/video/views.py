@@ -1,10 +1,9 @@
 import dlib
-import os
+import plotly.express as px
 from django.shortcuts import render, redirect
 from .forms import VideoForm
 from .models import Video
 from .position import position_analyzer
-from .position import graph_maker
 
 detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor("video/static/video/face_detection_data/shape_predictor_68_face_landmarks.dat")
@@ -12,12 +11,30 @@ predictor = dlib.shape_predictor("video/static/video/face_detection_data/shape_p
 
 def history(request):
     all_videos = Video.objects.all()
-    sorted_videos = sorted(all_videos, key=lambda x: x.date, reverse=True)
+    sorted_videos = sorted(all_videos, key=lambda x: x.id, reverse=True)
     data = {
         'title': 'История загрузок',
         'videos': sorted_videos
     }
     return render(request, 'video/history.html', data)
+
+
+def make_chart(dataframe, form):
+    final_mark = round(dataframe['mark'].mean(), 2)
+    dataframe = dataframe.rename(columns={'hor_mark': 'По-горизонтали', 'ver_mark': 'По-вертикали',
+                                          'square_mark': 'Крупность'})
+    fig = px.line(dataframe,
+                  x='duration',
+                  y='mark',
+                  title=f'График для {form.cleaned_data["date"]}. Итоговая оценка {final_mark}',
+                  labels={'duration': 'Длительность видео', 'mark': 'Оценка'},
+                  line_shape='spline',
+                  hover_data=['mark', 'По-горизонтали', 'По-вертикали', 'Крупность'],
+                  height=700,
+                  width=1000
+                  )
+    plot_html = fig.to_html(full_html=False)
+    return plot_html, final_mark
 
 
 def upload_video(request):
@@ -29,15 +46,21 @@ def upload_video(request):
         if form.is_valid():
             my_video = form.save()
             position = position_analyzer.PositionAnalyzer(my_video.video_file.path, detector, predictor)
-            dataframe = position.analyse()
-
-            graph = graph_maker.Graph(dataframe)
-            graph.plot_and_save_graph()
-
-            # os.remove(my_video.video_file.path)
-            return redirect('upload_video')
+            plot_html, final_mark = make_chart(position.analyse(), form)
+            data = {
+                'form': form,
+                'error': error,
+                'plot_html': plot_html
+            }
+            return render(request, 'video/upload_video.html', data)
         else:
             error = 'Введите корректные данные'
+            data = {
+                'form': form,
+                'error': error
+            }
+            return render(request, 'video/upload_video.html', data)
+
     data = {
         'form': form,
         'error': error

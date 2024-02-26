@@ -4,6 +4,10 @@
   Загрузка видео
 {% endblock %}
 
+{% block plotly %}
+  {{ plotly_js }}
+{% endblock %}
+
 {% block content %}
   <div class="container">
     <div class="row justify-content-center">
@@ -15,13 +19,18 @@
             {{ form.title }}<br>
             {{ form.video_file }}<br>
             {{ form.date }}<br>
+
             <span>{{ error }}</span><br>
             <span id="input-error" style="color: red;"></span><br>
+
             <button type="submit" class="btn btn-primary">Загрузить</button>
           </form>
           <div id="error-message"></div>
         </div>
       </div>
+            <div style="display: flex; justify-content: center;">
+              {{ plot_html | safe }}
+            </div>
     </div>
   </div>
   <script src="/static/video/js/upload_video.js"></script>

@@ -146,5 +146,5 @@ class PositionAnalyzer(object):
         self.cap.release()
         cv2.destroyAllWindows()
 
-        print(self.df_video)
+        # print(self.df_video)
         return self.df_video
