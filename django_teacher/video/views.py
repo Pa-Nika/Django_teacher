@@ -21,15 +21,21 @@ def history(request):
 
 def make_chart(dataframe, form):
     final_mark = round(dataframe['mark'].mean(), 2)
-    dataframe = dataframe.rename(columns={'hor_mark': 'По-горизонтали', 'ver_mark': 'По-вертикали',
-                                          'square_mark': 'Крупность'})
+    dataframe['eye_mark'] = dataframe['eye_mark'].fillna('Не распознано')
+    dataframe[['eye_mark', 'hor_mark', 'ver_mark', 'square_mark']] = dataframe[['eye_mark', 'hor_mark', 'ver_mark', 'square_mark']].\
+        replace(0, 'Не распознали лицо').bfill()
+    dataframe[['eye_mark', 'hor_mark', 'ver_mark', 'square_mark']] = dataframe[['eye_mark', 'hor_mark', 'ver_mark', 'square_mark']].\
+        replace(-1, 'Несколько лиц в кадре').bfill()
+    dataframe = dataframe.rename(columns={'hor_mark': 'По-горизонтали',
+                                          'ver_mark': 'По-вертикали',
+                                          'square_mark': 'Крупность',
+                                          'eye_mark': 'Положение глаз'})
     fig = px.line(dataframe,
                   x='duration',
                   y='mark',
                   title=f'График для {form.cleaned_data["date"]}. Итоговая оценка {final_mark}',
                   labels={'duration': 'Длительность видео', 'mark': 'Оценка'},
-                  line_shape='spline',
-                  hover_data=['mark', 'По-горизонтали', 'По-вертикали', 'Крупность'],
+                  hover_data=['mark', 'По-горизонтали', 'По-вертикали', 'Крупность', 'Положение глаз'],
                   height=700,
                   width=1000
                   )

@@ -5,8 +5,6 @@ import pandas as pd
 from . import constants
 from gaze_tracking import GazeTracking
 
-gaze = GazeTracking()
-
 
 def get_list_name_columns() -> list:
     name_columns = []
@@ -16,15 +14,21 @@ def get_list_name_columns() -> list:
     name_columns.append('square')
     name_columns.append('width')
     name_columns.append('height')
+    name_columns.append('eye_mark')
     name_columns.append('duration')
     return name_columns
 
 
 def square_mark(row) -> int:
+    if row['eye_mark'] == 0:
+        return 0
+    elif row['eye_mark'] == -1:
+        return -1
+
     square = row['height'] * row['width']
-    limit_5_up, limit_5_bottom = square * 0.09, square * 0.13
-    limit_4_up, limit_4_bottom = square * 0.08, square * 0.14
-    limit_3_up, limit_3_bottom = square * 0.06, square * 0.15
+    limit_5_up, limit_5_bottom = square * 0.09, square * 0.14
+    limit_4_up, limit_4_bottom = square * 0.08, square * 0.15
+    limit_3_up, limit_3_bottom = square * 0.06, square * 0.16
     if (row['square'] > limit_5_up) & (row['square'] < limit_5_bottom):
         return 5
     elif (row['square'] > limit_4_up) & (row['square'] < limit_4_bottom):
@@ -36,6 +40,11 @@ def square_mark(row) -> int:
 
 
 def ver_mark(row) -> int:
+    if row['eye_mark'] == 0:
+        return 0
+    elif row['eye_mark'] == -1:
+        return -1
+
     up = row['height']
     limit_5_up, limit_5_bottom = up * 0.3, up * 0.33
     limit_4_up, limit_4_bottom = up * 0.28, up * 0.33
@@ -51,6 +60,11 @@ def ver_mark(row) -> int:
 
 
 def hor_mark(row) -> int:
+    if row['eye_mark'] == 0:
+        return 0
+    elif row['eye_mark'] == -1:
+        return -1
+
     center = round(row['width'] / 2)
     limit_5, limit_4, limit_3 = center * 0.03, center * 0.05, center * 0.08
     if (row['28_x'] > center - limit_5) & (row['28_x'] < center + limit_5):
@@ -73,15 +87,38 @@ class PositionAnalyzer(object):
         self.fps = int(self.cap.get(cv2.CAP_PROP_FPS))
         self.MAE_error = 0
         self.df_video = pd.DataFrame(columns=get_list_name_columns())
+        self.gaze = GazeTracking(predictor, detector)
 
-    def check_face_count(self) -> bool:
+    def check_face_count(self, duration) -> bool:
         if len(self.face_count) > 1:
-            print("Много людей в кадре!")
+            self.fill_bad_marks_many_faces(duration)
             return False
         elif len(self.face_count) == 0:
-            print("Невозможно разобрать лицо!")
+            self.fill_bad_marks_not_face(duration)
             return False
         return True
+
+    def eyes_mark(self, img, data_from_frame):
+        mark_eyes = 5
+        self.gaze.refresh(img)
+        ratio_hor = self.gaze.horizontal_ratio()
+        ratio_ver = self.gaze.vertical_ratio()
+
+        if ratio_hor is None or ratio_ver is None:
+            data_from_frame.append(None)
+            return data_from_frame
+        print(f'ratio глаз: ratio_hor {ratio_hor} ratio_ver {ratio_ver}')
+
+        if ratio_hor <= constants.HOR_LEFT_3_LIMIT or ratio_hor >= constants.HOR_RIGHT_3_LIMIT:
+            mark_eyes = 3
+        elif ratio_hor <= constants.HOR_LEFT_4_LIMIT or ratio_hor >= constants.HOR_RIGHT_4_LIMIT:
+            mark_eyes = 4
+        elif ratio_ver <= constants.VER_UP_3_LIMIT or ratio_ver >= constants.VER_DOWN_3_LIMIT:
+            mark_eyes = 3
+        elif ratio_ver <= constants.VER_UP_4_LIMIT or ratio_ver >= constants.VER_DOWN_4_LIMIT:
+            mark_eyes = 4
+        data_from_frame.append(mark_eyes)
+        return data_from_frame
 
     def fill_df(self, gray, img, duration):
         for face in self.face_count:
@@ -97,18 +134,8 @@ class PositionAnalyzer(object):
             data_from_frame.append(face_area)
             data_from_frame.append(img.shape[1])
             data_from_frame.append(img.shape[0])
+            data_from_frame = self.eyes_mark(img, data_from_frame)
             data_from_frame.append(duration)
-
-            # gaze.refresh(img)
-            # left = gaze.pupil_left_coords()
-            # right = gaze.pupil_right_coords()
-            # if left is None and right is None:
-            #     print(f'None!!!!')
-
-            # data_from_frame.append(int(left[0]))
-            # data_from_frame.append(int(left[1]))
-            # data_from_frame.append(int(right[0]))
-            # data_from_frame.append(int(right[1]))
             self.df_video.loc[len(self.df_video.index)] = data_from_frame
         return
 
@@ -122,7 +149,21 @@ class PositionAnalyzer(object):
             hor = self.df_video.loc[i, 'hor_mark'] = hor_mark(self.df_video.iloc[i])
             ver = self.df_video.loc[i, 'ver_mark'] = ver_mark(self.df_video.iloc[i])
             square = self.df_video.loc[i, 'square_mark'] = square_mark(self.df_video.iloc[i])
-            self.df_video.loc[i, 'mark'] = (hor + ver + square) / 3
+            eye = self.df_video.loc[i, 'eye_mark']
+            if eye is not None:
+                self.df_video.loc[i, 'mark'] = (hor + ver + square + eye) / 4
+            else:
+                self.df_video.loc[i, 'mark'] = (hor + ver + square) / 3
+
+    def fill_bad_marks_not_face(self, duration):
+        data_from_frame = [0] * (len(get_list_name_columns()) - 1)
+        data_from_frame.append(duration)
+        self.df_video.loc[len(self.df_video.index)] = data_from_frame
+
+    def fill_bad_marks_many_faces(self, duration):
+        data_from_frame = [-1] * (len(get_list_name_columns()) - 1)
+        data_from_frame.append(duration)
+        self.df_video.loc[len(self.df_video.index)] = data_from_frame
 
     def analyse(self) -> pd.DataFrame:
         frame_now = 0
@@ -137,8 +178,8 @@ class PositionAnalyzer(object):
             duration = self.duration_frame(frame_now)
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             self.face_count = self.detector(gray)
-            if not self.check_face_count:
-                print('Я еще не знаю, что в этом случае делать...')
+            if not self.check_face_count(duration):
+                continue
 
             self.fill_df(gray, img, duration)
 
@@ -146,5 +187,5 @@ class PositionAnalyzer(object):
         self.cap.release()
         cv2.destroyAllWindows()
 
-        # print(self.df_video)
+        print(self.df_video.iloc[-60:-1, -5:-1])
         return self.df_video
