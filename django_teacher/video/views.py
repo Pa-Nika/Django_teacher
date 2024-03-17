@@ -1,9 +1,12 @@
 import dlib
 import plotly.express as px
+import os
+from .static.stuff_to_html import constants as const
 from django.shortcuts import render, redirect
 from .forms import VideoForm
 from .models import Video
-from .position import position_analyzer
+from .upload import position_analyzer
+from .online import online_video_worker
 
 detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor("video/static/video/face_detection_data/shape_predictor_68_face_landmarks.dat")
@@ -22,9 +25,11 @@ def history(request):
 def make_chart(dataframe, form):
     final_mark = round(dataframe['mark'].mean(), 2)
     dataframe['eye_mark'] = dataframe['eye_mark'].fillna('Не распознано')
-    dataframe[['eye_mark', 'hor_mark', 'ver_mark', 'square_mark']] = dataframe[['eye_mark', 'hor_mark', 'ver_mark', 'square_mark']].\
+    dataframe[['eye_mark', 'hor_mark', 'ver_mark', 'square_mark']] = dataframe[
+        ['eye_mark', 'hor_mark', 'ver_mark', 'square_mark']]. \
         replace(0, 'Не распознали лицо').bfill()
-    dataframe[['eye_mark', 'hor_mark', 'ver_mark', 'square_mark']] = dataframe[['eye_mark', 'hor_mark', 'ver_mark', 'square_mark']].\
+    dataframe[['eye_mark', 'hor_mark', 'ver_mark', 'square_mark']] = dataframe[
+        ['eye_mark', 'hor_mark', 'ver_mark', 'square_mark']]. \
         replace(-1, 'Несколько лиц в кадре').bfill()
     dataframe = dataframe.rename(columns={'hor_mark': 'По-горизонтали',
                                           'ver_mark': 'По-вертикали',
@@ -58,6 +63,8 @@ def upload_video(request):
                 'error': error,
                 'plot_html': plot_html
             }
+            file_path = my_video.video_file.path
+            os.remove(file_path)
             return render(request, 'video/upload_video.html', data)
         else:
             error = 'Введите корректные данные'
@@ -74,5 +81,30 @@ def upload_video(request):
     return render(request, 'video/upload_video.html', data)
 
 
+# def generate_frames(stream):
+#     while True:
+#         frame = stream.get_frame()
+#         if frame:
+#             yield b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + frame + b'\r\n'
+#         else:
+#             break
+#
+#
+# def video_feed(request):
+#     stream = VideoStream()
+#     return HttpResponse(generate_frames(stream))
+
+
 def online_video(request):
-    return render(request, 'video/online_video.html')
+    data = {
+        'text_about': const.TEXT_ONLINE_VIDEO
+    }
+
+    if request.method == 'GET':
+        return render(request, 'video/online_video.html', data)
+
+    if request.method == 'POST':
+        new_video_online = online_video_worker.OnlineVideoWorker()
+        new_video_online.read_video()
+
+    return render(request, 'video/online_video.html', data)

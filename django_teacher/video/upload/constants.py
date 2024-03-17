@@ -1,10 +1,12 @@
 ARRAY_OF_POINTS = {1, 9, 17, 28}
 
+# eyes horizontal constants
 HOR_LEFT_3_LIMIT = 0.25
 HOR_RIGHT_3_LIMIT = 0.75
 HOR_LEFT_4_LIMIT = 0.35
 HOR_RIGHT_4_LIMIT = 0.65
 
+# eyes vertical constants
 VER_UP_3_LIMIT = 0.25
 VER_DOWN_3_LIMIT = 0.95
 VER_UP_4_LIMIT = 0.35

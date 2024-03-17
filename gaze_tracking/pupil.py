@@ -5,7 +5,7 @@ import cv2
 class Pupil(object):
     """
     This class detects the iris of an eye and estimates
-    the position of the pupil
+    the upload of the pupil
     """
 
     def __init__(self, eye_frame, threshold):
@@ -35,7 +35,7 @@ class Pupil(object):
         return new_frame
 
     def detect_iris(self, eye_frame):
-        """Detects the iris and estimates the position of the iris by
+        """Detects the iris and estimates the upload of the iris by
         calculating the centroid.
 
         Arguments:

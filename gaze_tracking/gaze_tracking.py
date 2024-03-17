@@ -7,7 +7,7 @@ from .calibration import Calibration
 class GazeTracking(object):
     """
     This class tracks the user's gaze.
-    It provides useful information like the position of the eyes
+    It provides useful information like the upload of the eyes
     and pupils and allows to know if the eyes are open or closed
     """
 
@@ -22,6 +22,18 @@ class GazeTracking(object):
 
         # _predictor is used to get facial landmarks of a given face
         self._predictor = predictor
+
+    def get_left_coords(self) -> [int]:
+        if self.pupils_located:
+            x_left, y_left = self.pupil_left_coords()
+            return x_left, y_left
+        return None, None
+
+    def get_right_coords(self) -> [int]:
+        if self.pupils_located:
+            x_right, y_right = self.pupil_right_coords()
+            return x_right, y_right
+        return None, None
 
     @property
     def pupils_located(self):
@@ -135,5 +147,4 @@ class GazeTracking(object):
             cv2.line(frame, (x_left, y_left - 5), (x_left, y_left + 5), color)
             cv2.line(frame, (x_right - 5, y_right), (x_right + 5, y_right), color)
             cv2.line(frame, (x_right, y_right - 5), (x_right, y_right + 5), color)
-
         return frame
