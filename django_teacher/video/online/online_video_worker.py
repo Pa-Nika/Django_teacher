@@ -23,15 +23,15 @@ class OnlineVideoWorker(object):
                 print("NO")
                 return JsonResponse({'error': 'Не удалось получить кадр'}, status=500)
 
-    # def generate_video_stream(self):
-    #     while self.cap.isOpened():
-    #         flag, frame = self.cap.read()
-    #         if flag:
-    #             _, buffer = cv2.imencode('.jpg', frame)
-    #             frame_base64 = base64.b64encode(buffer).decode('utf-8')
-    #             yield frame_base64
-    #         else:
-    #             break
+    def generate_video_stream(self):
+        while self.cap.isOpened():
+            flag, frame = self.cap.read()
+            if flag:
+                _, buffer = cv2.imencode('.jpg', frame)
+                frame_base64 = base64.b64encode(buffer).decode('utf-8')
+                yield frame_base64
+            else:
+                break
 
     # def video_stream(self, request):
     #     self.cap = cv2.VideoCapture(0)
