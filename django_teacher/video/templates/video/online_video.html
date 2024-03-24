@@ -12,12 +12,11 @@
      <pre>
       {{text_about}}
      </pre>
-<!--        <div id="camera-feed">-->
-<!--            <img id="camera-image" src="/video/feed" alt="Camera Image">-->
-<!--        </div>-->
     <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
-            <button type="submit" class="btn btn-primary">Начать запись онлайн</button>
+            <button type="submit" class="btn btn-primary" >
+                    <a href="{% url 'online_analysis' %}" class="btn btn-primary">Начать запись онлайн</a>
+            </button>
     </form>
   </div>
 

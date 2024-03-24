@@ -1,0 +1,25 @@
+{% extends 'main/base.html' %}
+
+{% block title %}
+  Онлайн анализ видео
+{% endblock %}
+
+{% block content %}
+
+  <div class="container text-center">
+
+    <h1 class="display-4 mt-5 fw-normal text-body-emphasis">Онлайн анализ видео</h1>
+    <pre>
+      {{text_about}}
+    </pre>
+    {% csrf_token %}
+
+    </div>
+      <div style="display: flex; justify-content: center;">
+        {{ plot_html | safe }}
+      </div>
+    </div>
+
+  </div>
+
+{% endblock %}
