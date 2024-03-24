@@ -122,6 +122,26 @@ def online_analysis(request):
     return render(request, 'video/online_analysis.html', data)
 
 
+def safe_object():
+    today = datetime.today()
+    formatted_date = today.strftime("%Y-%m-%d")
+    processed_data = {
+        "title": f"График за {formatted_date}",
+        "video_file": "онлайн",
+        "date": formatted_date
+    }
+
+    # Создание экземпляра модели Video и заполнение данными
+    video_object = Video.objects.create(
+        title=processed_data['title'],
+        video_file=processed_data['video_file'],
+        date=processed_data['date']
+    )
+
+    # Сохранение объекта в базе данных
+    video_object.save()
+
+
 def make_chart_online(dataframe):
     final_mark = round(dataframe['mark'].mean(), 2)
     dataframe['eye_mark'] = dataframe['eye_mark'].fillna('Не распознано')
@@ -131,6 +151,10 @@ def make_chart_online(dataframe):
     dataframe[['eye_mark', 'hor_mark', 'ver_mark', 'square_mark']] = dataframe[
         ['eye_mark', 'hor_mark', 'ver_mark', 'square_mark']]. \
         replace(-1, 'Несколько лиц в кадре').bfill()
+
+    today = datetime.today()
+    formatted_date = today.strftime("%d-%m-%Y")
+
     dataframe = dataframe.rename(columns={'hor_mark': 'По-горизонтали',
                                           'ver_mark': 'По-вертикали',
                                           'square_mark': 'Крупность',
@@ -138,7 +162,7 @@ def make_chart_online(dataframe):
     fig = px.line(dataframe,
                   x='duration',
                   y='mark',
-                  title=f'График. Итоговая оценка {final_mark}',
+                  title=f'График за {formatted_date}. Итоговая оценка {final_mark}',
                   labels={'duration': 'Длительность видео', 'mark': 'Оценка'},
                   hover_data=['mark', 'По-горизонтали', 'По-вертикали', 'Крупность', 'Положение глаз'],
                   height=700,
@@ -161,8 +185,5 @@ def online_results(request):
             data = {
                 'plot_html': plot_html
             }
+            safe_object()
         return render(request, 'video/online_results.html', data)
-
-
-
-

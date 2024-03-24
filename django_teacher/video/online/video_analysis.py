@@ -1,4 +1,6 @@
 import datetime
+import threading
+
 import cv2
 import pandas as pd
 
@@ -84,7 +86,6 @@ class OnlineVideoAnalyzer(object):
         if ratio_hor is None or ratio_ver is None:
             data_from_frame.append(None)
             return data_from_frame
-        # print(f'ratio глаз: ratio_hor {ratio_hor} ratio_ver {ratio_ver}')
 
         if ratio_hor <= constants.HOR_LEFT_3_LIMIT or ratio_hor >= constants.HOR_RIGHT_3_LIMIT:
             mark_eyes = 3
@@ -120,9 +121,9 @@ class OnlineVideoAnalyzer(object):
         self.cap.release()  # Освобождаем видео поток
         self.cap = cv2.VideoCapture(0)
         self.df_video = pd.DataFrame(columns=set_marks.get_list_name_columns())
+        self.frame_counter = 0
 
     def read_video(self):
-        print("READDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD")
         self.some_tmp_init()
 
         flag, frame = self.cap.read()
@@ -133,20 +134,21 @@ class OnlineVideoAnalyzer(object):
             exit()
 
         while not self.is_stop and self.cap.isOpened():
-            print('ВНУТРИ')
             flag, frame = self.cap.read()
             self.out_full_video.write(frame)
             self.frame_counter += 1
             if flag:
                 fps = self.cap.get(cv2.CAP_PROP_FPS)
                 if fps != 0:
-                    if self.frame_counter % (fps // self.frame_rate) == 0:
+                    frames_per_desired_second = fps / self.frame_rate
+                    if self.frame_counter % int(frames_per_desired_second) == 0:
                         duration = self.duration_frame(self.frame_counter)
                         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
                         self.face_count = self.detector(gray)
                         if not self.check_face_count(duration):
                             continue
                         self.fill_df(gray, frame, duration)
+
             else:
                 break
 
@@ -155,4 +157,3 @@ class OnlineVideoAnalyzer(object):
         print(self.df_video.iloc[-60:-1, -5:-1])
         self.set_active()
         return
-        # return self.df_video
