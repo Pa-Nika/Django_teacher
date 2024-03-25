@@ -22,6 +22,17 @@ class OnlineVideoReader(object):
         # self.out_full_video.release()
         cv2.destroyAllWindows()
 
+    def rectangle(self, frame, height, width):
+        # Определение координат для квадрата
+        center = round(width / 2)
+        x1 = int(center - (center * 0.3))
+        y1 = int(height * 0.3)
+        x2 = int(center + (center * 0.3))
+        y2 = int(height * 0.33)
+
+        # Нарисуем квадрат на изображении
+        cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), thickness=2)
+
     def read_video(self):
         flag, frame = self.cap.read()
         if flag:
@@ -33,8 +44,7 @@ class OnlineVideoReader(object):
         while not self.is_stop and self.cap.isOpened():
             flag, frame = self.cap.read()
             if flag:
-                # self.out_full_video.write(frame)
-
+                self.rectangle(frame, height, width)
                 cv2.imshow('frame', frame)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break

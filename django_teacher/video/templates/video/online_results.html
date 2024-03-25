@@ -8,11 +8,18 @@
 
   <div class="container text-center">
 
-    <h1 class="display-4 mt-5 fw-normal text-body-emphasis">Онлайн анализ видео</h1>
+    <h1 class="display-4 mt-5 fw-normal text-body-emphasis">Результаты анализа видео</h1>
     <pre>
       {{text_about}}
     </pre>
     {% csrf_token %}
+
+    <form id="videoForm" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+        <button id="submitButton" type="submit" class="btn btn-primary">
+          Скачать полное видео
+        </button>
+    </form>
 
     </div>
       <div style="display: flex; justify-content: center;">

@@ -4,6 +4,9 @@ from datetime import datetime
 import dlib
 import plotly.express as px
 import os
+
+from django.http import FileResponse, HttpResponse
+
 from .static.stuff_to_html import constants as const
 from django.shortcuts import render, redirect
 from .forms import VideoForm
@@ -187,3 +190,13 @@ def online_results(request):
             }
             safe_object()
         return render(request, 'video/online_results.html', data)
+
+    if request.method == 'POST':
+        file_path = "output.avi"
+        if os.path.exists(file_path):
+            print("Внутри")
+            with open(file_path, 'rb') as f:
+                file_content = f.read()
+            response = HttpResponse(file_content, content_type='video/x-msvideo')
+            response['Content-Disposition'] = 'attachment; filename="output.avi"'
+            return response
